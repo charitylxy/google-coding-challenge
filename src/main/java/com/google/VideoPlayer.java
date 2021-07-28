@@ -1,5 +1,7 @@
 package com.google;
 
+import java.util.List;
+
 public class VideoPlayer {
 
   private final VideoLibrary videoLibrary;
@@ -13,11 +15,47 @@ public class VideoPlayer {
   }
 
   public void showAllVideos() {
-    System.out.println("showAllVideos needs implementation");
+    System.out.println("\"Here's a list of all available videos:");
+
+    List<Video> videosList = videoLibrary.getVideos();
+
+    //sort in lexicographical order by title
+    videosList.sort((video1, video2) -> video1.getTitle().compareTo(video2.getTitle()));
+
+    //print video details line by line
+    for (Video video : videosList){
+      //Video Title
+      System.out.printf (video.getTitle());
+      System.out.printf(" (");
+
+      //Video ID
+      System.out.printf (video.getVideoId());
+      System.out.printf (") [");
+
+      //Video Tags
+      for (int i = 0; i < video.getTags().size(); i++) {
+        System.out.printf (video.getTags().get(i));
+
+        if (i < (video.getTags().size()- 1) ) {
+          System.out.printf (" ");
+        }
+      }
+      System.out.println("]");
+    }
   }
 
   public void playVideo(String videoId) {
-    System.out.println("playVideo needs implementation");
+    Boolean videoFound = false;
+    for (Video video : videosList){
+      if (video.getVideoId() == videoId){
+        System.out.println("Playing Video: " + video.getTitle());
+        videoFound = true;
+      }
+    }
+    if (videoFound == false){
+      System.out.println ("Cannot play video: Video does not exist");
+    }
+
   }
 
   public void stopVideo() {

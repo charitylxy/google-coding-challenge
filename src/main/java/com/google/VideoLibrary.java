@@ -19,7 +19,7 @@ class VideoLibrary {
   VideoLibrary() {
     this.videos = new HashMap<>();
     try {
-      File file = new File(this.getClass().getResource("videos.txt").getFile());
+      File file = new File("C:\\Users\\Chari\\Desktop\\Internship Experience UK Tech\\google-coding-challenge-charity\\target\\classes\\videos.txt");
 
       Scanner scanner = new Scanner(file);
       while (scanner.hasNextLine()) {
