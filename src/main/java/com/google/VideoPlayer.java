@@ -5,9 +5,11 @@ import java.util.List;
 public class VideoPlayer {
 
   private final VideoLibrary videoLibrary;
+  private Video currentVideo;
 
   public VideoPlayer() {
     this.videoLibrary = new VideoLibrary();
+    this.currentVideo = null;
   }
 
   public void numberOfVideos() {
@@ -46,9 +48,14 @@ public class VideoPlayer {
 
   public void playVideo(String videoId) {
     Boolean videoFound = false;
-    for (Video video : videosList){
-      if (video.getVideoId() == videoId){
-        System.out.println("Playing Video: " + video.getTitle());
+
+    for (Video chosenVideo : videoLibrary.getVideos()){
+      if (chosenVideo.getVideoId().equals(videoId)){
+        if (currentVideo != null){
+          stopVideo();
+        }
+        System.out.println("Playing video: " + chosenVideo.getTitle());
+        currentVideo = chosenVideo;
         videoFound = true;
       }
     }
@@ -59,7 +66,13 @@ public class VideoPlayer {
   }
 
   public void stopVideo() {
-    System.out.println("stopVideo needs implementation");
+    if (currentVideo != null){
+      System.out.println("Stopping video: " + currentVideo.getTitle());
+      currentVideo = null;
+    }
+    else {
+      System.out.println("Cannot stop video: No video is currently playing");
+    }
   }
 
   public void playRandomVideo() {
