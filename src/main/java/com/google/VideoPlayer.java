@@ -1,8 +1,6 @@
 package com.google;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 public class VideoPlayer {
 
@@ -289,12 +287,78 @@ public class VideoPlayer {
 
   }
 
+  private void playSearchedVideo (ArrayList<Video> videos){
+    System.out.println("Would you like to play any of the above? If yes, specify the number of the video.\n" +
+            "If your answer is not a valid number, we will assume it's a no.");
+
+    Scanner input = new Scanner(System.in);
+
+    try {
+      int videoNum = Integer.parseInt(input.nextLine());
+      if (videoNum > 0 && videoNum <= videos.size()){
+        playVideo(videos.get(videoNum-1).getVideoId());
+      }
+    }
+    catch (NumberFormatException exception){
+
+    }
+
+  }
   public void searchVideos(String searchTerm) {
-    System.out.println("searchVideos needs implementation");
+    ArrayList<Video> searchedVideos = new ArrayList<Video>();
+
+    for (Video video : videoLibrary.getVideos()){
+      if (video.getTitle().toLowerCase(Locale.ROOT).contains(searchTerm.toLowerCase(Locale.ROOT))){
+        searchedVideos.add(video);
+      }
+    }
+
+    //sort in lexicographical order by title
+    searchedVideos.sort((video1, video2) -> video1.getTitle().compareTo(video2.getTitle()));
+
+    if (searchedVideos.isEmpty()){
+      System.out.println("No search results for " + searchTerm );
+
+    }
+    else {
+      System.out.println("Here are the results for " + searchTerm + ":");
+
+      for (int i = 0 ; i < searchedVideos.size(); i++){
+        System.out.printf( (i+1) + ") ") ;
+        printDetails(searchedVideos.get(i));
+      }
+
+      playSearchedVideo(searchedVideos);
+    }
   }
 
   public void searchVideosWithTag(String videoTag) {
-    System.out.println("searchVideosWithTag needs implementation");
+    ArrayList<Video> searchedVideos = new ArrayList<Video>();
+
+    for (Video video : videoLibrary.getVideos()){
+      for (String tag : video.getTags()){
+        if (tag.equalsIgnoreCase(videoTag.toLowerCase(Locale.ROOT))){
+          searchedVideos.add(video);
+        }
+      }
+    }
+    //sort in lexicographical order by title
+    searchedVideos.sort((video1, video2) -> video1.getTitle().compareTo(video2.getTitle()));
+
+    if (searchedVideos.isEmpty()){
+      System.out.println("No search results for " + videoTag );
+    }
+
+    else {
+      System.out.println("Here are the results for " + videoTag + ":");
+
+      for (int i = 0 ; i < searchedVideos.size(); i++){
+        System.out.printf( (i+1) + ") ") ;
+        printDetails(searchedVideos.get(i));
+      }
+
+      playSearchedVideo(searchedVideos);
+    }
   }
 
   public void flagVideo(String videoId) {
