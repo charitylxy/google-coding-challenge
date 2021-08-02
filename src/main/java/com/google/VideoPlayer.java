@@ -52,11 +52,17 @@ public class VideoPlayer {
       }
     }
     if (pausedVideo == null) {
-      System.out.println("]");
+      System.out.printf("]");
     }
     else {
-      System.out.println("] - PAUSED");
+      System.out.printf("] - PAUSED");
     }
+
+    if (video.getFlagStatus() == true){
+      System.out.printf (" - FLAGGED (reason: " + video.getFlagReason() + ")");
+    }
+
+    System.out.println();
   }
 
   private boolean checkVideoExist (String videoId){
@@ -71,13 +77,19 @@ public class VideoPlayer {
 
   public void playVideo(String videoId) {
     if (checkVideoExist(videoId)){
-      Video chosenVideo = videoLibrary.getVideo(videoId);
-      if (currentVideo != null){
-        stopVideo();
+      Video selectedVideo = videoLibrary.getVideo(videoId);
+      if (selectedVideo.getFlagStatus() == false){
+        if (currentVideo != null){
+          stopVideo();
+        }
+        System.out.println("Playing video: " + selectedVideo.getTitle());
+        currentVideo = selectedVideo;
+        pausedVideo = null;
       }
-      System.out.println("Playing video: " + chosenVideo.getTitle());
-      currentVideo = chosenVideo;
-      pausedVideo = null;
+      else {
+        System.out.println("Cannot play video: Video is currently flagged (reason: " + selectedVideo.getFlagReason() + ")");
+      }
+
     }
     else{
       System.out.println ("Cannot play video: Video does not exist");
@@ -94,14 +106,35 @@ public class VideoPlayer {
     }
   }
 
+  private boolean checkAllFlaggedVideos (){
+    boolean check = true;
+    for (Video video : videoLibrary.getVideos()){
+      if (video.getFlagStatus() == false){
+        check = false;
+      }
+    }
+    return check;
+  }
+
   public void playRandomVideo() {
+    Video selectedVideo = null;
     if (videoLibrary.getVideos().isEmpty()){
       System.out.println("No available videos");
     }
     else {
-      Random rand = new Random();
-      Video selectRandom = videoLibrary.getVideos().get(rand.nextInt(videoLibrary.getVideos().size()));
-      playVideo (selectRandom.getVideoId());
+      if (!checkAllFlaggedVideos()){
+        while (selectedVideo == null){
+          Random rand = new Random();
+          Video selectRandom = videoLibrary.getVideos().get(rand.nextInt(videoLibrary.getVideos().size()));
+          if (selectRandom.getFlagStatus() == false){
+            selectedVideo = selectRandom;
+          }
+        }
+        playVideo (selectedVideo.getVideoId());
+      }
+      else {
+        System.out.println("No videos available");
+      }
     }
 
   }
@@ -181,17 +214,18 @@ public class VideoPlayer {
 
       if (checkVideoExist(videoId)){
         Video selectedVideo = videoLibrary.getVideo(videoId);
-
-        if (selectedPlaylist.getVideos().contains(selectedVideo)){
-          System.out.println("Cannot add video to " + playlistName + ": Video already added");
-
+        if (selectedVideo.getFlagStatus()== false){
+          if (selectedPlaylist.getVideos().contains(selectedVideo)){
+            System.out.println("Cannot add video to " + playlistName + ": Video already added");
+          }
+          else {
+            System.out.println("Added video to " + playlistName + ": " + selectedVideo.getTitle());
+            selectedPlaylist.getVideos().add(selectedVideo);
+          }
         }
         else {
-          System.out.println("Added video to " + playlistName + ": " + selectedVideo.getTitle());
-          selectedPlaylist.getVideos().add(selectedVideo);
+          System.out.println("Cannot add video to " + playlistName + ": Video is currently flagged (reason: " + selectedVideo.getFlagReason() + ")");
         }
-
-
       }
 
       else {
@@ -309,7 +343,9 @@ public class VideoPlayer {
 
     for (Video video : videoLibrary.getVideos()){
       if (video.getTitle().toLowerCase(Locale.ROOT).contains(searchTerm.toLowerCase(Locale.ROOT))){
-        searchedVideos.add(video);
+        if (video.getFlagStatus() == false){
+          searchedVideos.add(video);
+        }
       }
     }
 
@@ -338,7 +374,9 @@ public class VideoPlayer {
     for (Video video : videoLibrary.getVideos()){
       for (String tag : video.getTags()){
         if (tag.equalsIgnoreCase(videoTag.toLowerCase(Locale.ROOT))){
-          searchedVideos.add(video);
+          if (video.getFlagStatus() == false){
+            searchedVideos.add(video);
+          }
         }
       }
     }
@@ -360,16 +398,57 @@ public class VideoPlayer {
       playSearchedVideo(searchedVideos);
     }
   }
-
   public void flagVideo(String videoId) {
-    System.out.println("flagVideo needs implementation");
+    if (checkVideoExist(videoId)){
+      Video video = videoLibrary.getVideo(videoId);
+      if (video.getFlagStatus() == false){
+        videoLibrary.getVideo(videoId).setFlagStatus(true);
+        System.out.println("Successfully flagged video: " + video.getTitle() + " (reason: " + video.getFlagReason() + ")");
+      }
+      else {
+        System.out.println("Cannot flag video: Video is already flagged");
+      }
+    }
+    else {
+      System.out.println("Cannot flag video: Video does not exist");
+    }
   }
 
-  public void flagVideo(String videoId, String reason) {
-    System.out.println("flagVideo needs implementation");
+  public void flagVideo(String videoId, String flagReason) {
+    if (checkVideoExist(videoId)){
+      Video video = videoLibrary.getVideo(videoId);
+      if (video.getFlagStatus() == false){
+        if (currentVideo == video){
+          stopVideo();
+        }
+        videoLibrary.getVideo(videoId).setFlagStatus(true);
+        videoLibrary.getVideo(videoId).setFlagReason(flagReason);
+        System.out.println("Successfully flagged video: " + video.getTitle() + " (reason: " + video.getFlagReason() + ")");
+      }
+      else {
+        System.out.println("Cannot flag video: Video is already flagged");
+      }
+    }
+    else {
+      System.out.println("Cannot flag video: Video does not exist");
+    }
   }
+
 
   public void allowVideo(String videoId) {
-    System.out.println("allowVideo needs implementation");
+    if (checkVideoExist(videoId)){
+      Video video = videoLibrary.getVideo(videoId);
+      if (video.getFlagStatus() == true) {
+        videoLibrary.getVideo(videoId).setFlagStatus(false);
+        videoLibrary.getVideo(videoId).setFlagReason("Not supplied");
+        System.out.println("Successfully removed flag from video: " + video.getTitle());
+      }
+      else {
+        System.out.println("Cannot remove flag from video: Video is not flagged");
+      }
+    }
+    else {
+      System.out.println("Cannot remove flag from video: Video does not exist");
+    }
   }
 }
